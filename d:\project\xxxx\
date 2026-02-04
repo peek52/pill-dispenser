@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .card {
+            background: linear-gradient(145deg, #1a2744, #0d1526);
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .title {
+            color: #fff;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 12px;
+            color: #8892b0;
+            margin-top: 4px;
+        }
+
+        .status {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 11px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .status.connected {
+            color: #2ed573;
+        }
+
+        .status.disconnected {
+            color: #f5576c;
+        }
+
+        .medicine-name {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .field-label {
+            color: #8892b0;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: #1e2d46;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .schedule-box {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .schedule-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .schedule-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .toggle {
+            position: relative;
+            width: 48px;
+            height: 26px;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: #2a3a5a;
+            border-radius: 26px;
+            transition: 0.3s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: #fff;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        input:checked+.slider {
+            background: linear-gradient(135deg, #2ed573, #20bf6b);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(22px);
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .field {
+            flex: 1;
+        }
+
+        select,
+        input[type="time"] {
+            width: 100%;
+            height: 46px;
+            padding: 0 14px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: #1e2d46;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px;
+            border-radius: 14px;
+            border: none;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #2ed573, #20bf6b);
+        }
+
+        .btn-dispense {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="header">
+            <div class="icon">💊</div>
+            <div class="title">Smart Pill Dispenser</div>
+            <div class="subtitle">NETPIE Dashboard</div>
+        </div>
+
+        <div class="status disconnected" id="status">Connecting...</div>
+
+        <div class="medicine-name">
+            <span class="field-label">💊 Medicine Name</span>
+            <input type="text" id="pillName" value="Vitamin C">
+        </div>
+
+        <div class="schedule-box">
+            <div class="schedule-header">
+                <div class="schedule-title">🌅 Morning</div>
+                <label class="toggle">
+                    <input type="checkbox" id="c_morning" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="row">
+                <div class="field">
+                    <span class="field-label">Time</span>
+                    <input type="time" id="t_morning" value="08:00">
+                </div>
+                <div class="field">
+                    <span class="field-label">Meal</span>
+                    <select id="s_morning">
+                        <option value="before">Before</option>
+                        <option value="after">After</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="schedule-box">
+            <div class="schedule-header">
+                <div class="schedule-title">☀️ Lunch</div>
+                <label class="toggle">
+                    <input type="checkbox" id="c_lunch" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="row">
+                <div class="field">
+                    <span class="field-label">Time</span>
+                    <input type="time" id="t_lunch" value="12:00">
+                </div>
+                <div class="field">
+                    <span class="field-label">Meal</span>
+                    <select id="s_lunch">
+                        <option value="before">Before</option>
+                        <option value="after">After</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="schedule-box">
+            <div class="schedule-header">
+                <div class="schedule-title">🌙 Dinner</div>
+                <label class="toggle">
+                    <input type="checkbox" id="c_dinner" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="row">
+                <div class="field">
+                    <span class="field-label">Time</span>
+                    <input type="time" id="t_dinner" value="18:00">
+                </div>
+                <div class="field">
+                    <span class="field-label">Meal</span>
+                    <select id="s_dinner">
+                        <option value="before">Before</option>
+                        <option value="after">After</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="schedule-box">
+            <div class="schedule-header">
+                <div class="schedule-title">🛏️ Bedtime</div>
+                <label class="toggle">
+                    <input type="checkbox" id="c_bed">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="row">
+                <div class="field">
+                    <span class="field-label">Time</span>
+                    <input type="time" id="t_bed" value="22:00">
+                </div>
+                <div class="field"></div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-save" onclick="saveSchedule()" id="btnSave">💾 Save</button>
+            <button class="btn btn-dispense" onclick="dispenseNow()" id="btnDispense">⚡ Dispense</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+    <script>
+        const MQTT_HOST = "broker.netpie.io";
+        const MQTT_PORT = 8083;
+        const TOKEN = "AUAbCxfYonbPQgBKyuGxwvas1vL9M9Md";
+        const SECRET = "4mgegowymnSxszLKSqMigjuD4z2Rxim8";
+
+        let client = null;
+        let isConnected = false;
+
+        function updateStatus(msg, connected) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = msg;
+            statusEl.className = 'status ' + (connected ? 'connected' : 'disconnected');
+        }
+
+        function connectMQTT() {
+            const clientId = "widget_" + Date.now();
+            client = new Paho.MQTT.Client(MQTT_HOST, MQTT_PORT, "/mqtt", clientId);
+
+            client.onConnectionLost = function (response) {
+                isConnected = false;
+                updateStatus("Disconnected", false);
+                setTimeout(connectMQTT, 3000);
+            };
+
+            client.connect({
+                useSSL: true,
+                userName: TOKEN,
+                password: SECRET,
+                onSuccess: function () {
+                    isConnected = true;
+                    updateStatus("✅ Connected", true);
+                    console.log("MQTT Connected!");
+                },
+                onFailure: function (err) {
+                    isConnected = false;
+                    updateStatus("❌ Connection Failed", false);
+                    console.error("Connection failed:", err);
+                    setTimeout(connectMQTT, 3000);
+                }
+            });
+        }
+
+        function saveSchedule() {
+            if (!isConnected) {
+                alert("❌ Not connected to NETPIE!");
+                return;
+            }
+
+            const btn = document.getElementById('btnSave');
+            btn.disabled = true;
+            btn.textContent = '⏳ Saving...';
+
+            const schedule = {
+                pill_name: document.getElementById('pillName').value,
+                morning: {
+                    active: document.getElementById('c_morning').checked,
+                    time: document.getElementById('t_morning').value,
+                    meal: document.getElementById('s_morning').value
+                },
+                lunch: {
+                    active: document.getElementById('c_lunch').checked,
+                    time: document.getElementById('t_lunch').value,
+                    meal: document.getElementById('s_lunch').value
+                },
+                dinner: {
+                    active: document.getElementById('c_dinner').checked,
+                    time: document.getElementById('t_dinner').value,
+                    meal: document.getElementById('s_dinner').value
+                },
+                bed: {
+                    active: document.getElementById('c_bed').checked,
+                    time: document.getElementById('t_bed').value,
+                    meal: "none"
+                }
+            };
+
+            const payload = JSON.stringify({ data: { schedule: schedule } });
+            const message = new Paho.MQTT.Message(payload);
+            message.destinationName = "@shadow/data/update";
+            message.retained = true;
+            message.qos = 1;
+
+            try {
+                client.send(message);
+                updateStatus("✅ Schedule Saved!", true);
+                btn.textContent = '✅ Saved!';
+                setTimeout(function () {
+                    btn.textContent = '💾 Save';
+                    btn.disabled = false;
+                    updateStatus("✅ Connected", true);
+                }, 2000);
+            } catch (e) {
+                updateStatus("❌ Send Failed", false);
+                btn.textContent = '❌ Error';
+                btn.disabled = false;
+            }
+        }
+
+        function dispenseNow() {
+            if (!isConnected) {
+                alert("❌ Not connected to NETPIE!");
+                return;
+            }
+
+            const btn = document.getElementById('btnDispense');
+            btn.disabled = true;
+            btn.textContent = '⏳ Dispensing...';
+
+            const payload = JSON.stringify({ action: "dispense" });
+            const message = new Paho.MQTT.Message(payload);
+            message.destinationName = "@msg/command";
+            message.qos = 1;
+
+            try {
+                client.send(message);
+                updateStatus("✅ Dispensed!", true);
+                btn.textContent = '✅ Dispensed!';
+                setTimeout(function () {
+                    btn.textContent = '⚡ Dispense';
+                    btn.disabled = false;
+                    updateStatus("✅ Connected", true);
+                }, 2000);
+            } catch (e) {
+                updateStatus("❌ Send Failed", false);
+                btn.textContent = '❌ Error';
+                btn.disabled = false;
+            }
+        }
+
+        // Auto-connect on load
+        connectMQTT();
+    </script>
+</body>
+
+</html>
